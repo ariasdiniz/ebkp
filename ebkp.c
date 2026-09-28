@@ -2,6 +2,10 @@
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+//#include "./ebkp.h"
+
+#define DEBUG 0
 
 int main(int argc, char **argv) {
   if (argc < 3) {
@@ -21,7 +25,7 @@ int main(int argc, char **argv) {
 
   struct dirent *item;
   while ((item = readdir(d)) != NULL) {
-    printf("%d\n", item->d_type == DT_DIR);
+    printf("%d\n", item->d_ino == DT_DIR);
   }
 
   return 0;
