@@ -1,9 +1,9 @@
 #include <dirent.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
-//#include "./ebkp.h"
+// #include "./ebkp.h"
 
 #define DEBUG 0
 
@@ -19,7 +19,9 @@ int main(int argc, char **argv) {
   DIR *d = opendir(source);
 
   if (d == NULL || errno != 0) {
-    fprintf(stderr, "Error. Directory does not exists or you don't have access to it.\n");
+    fprintf(
+        stderr,
+        "Error. Directory does not exists or you don't have access to it.\n");
     return 1;
   }
 

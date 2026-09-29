@@ -1,7 +1,8 @@
 #ifndef EBKP_
 
 #ifndef MAXNAMLEN
-// I used 260 here if undefined for the program to be compatible with the Windows OS.
+// I used 260 here if undefined for the program to be compatible with the
+// Windows OS.
 #define MAXNAMLEN 260
 #endif
 
