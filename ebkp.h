@@ -15,11 +15,15 @@ struct bstack;
 typedef struct bst_node {
   uint64_t src_ino;
   uint64_t des_ino;
+  struct bst_node *parent;
   struct bst_node *left;
   struct bst_node *right;
   struct bstack *stackitem;
 } bst_node;
 
 extern bst_node *troot;
+
+bst_node *bstfind(uint64_t src_ino);
+void bstadd(uint64_t src_ino, uint64_t des_ino);
 
 #endif

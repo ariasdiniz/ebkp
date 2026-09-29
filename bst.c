@@ -76,7 +76,7 @@ void setup_bst() {
   tnodes = MAXITEMS;
 }
 
-bst_node *bstfind(uint32_t src_ino) {
+bst_node *bstfind(uint64_t src_ino) {
   if (troot == NULL)
     return NULL;
 
@@ -95,10 +95,11 @@ bst_node *bstfind(uint32_t src_ino) {
   return node;
 }
 
-void bstadd(uint32_t src_ino, uint32_t des_ino) {
+void bstadd(uint64_t src_ino, uint64_t des_ino) {
   struct bstack *newnode = popstack();
   newnode->node->src_ino = src_ino;
   newnode->node->des_ino = des_ino;
+  newnode->node->parent = NULL;
   newnode->node->left = NULL;
   newnode->node->right = NULL;
 
@@ -113,6 +114,7 @@ void bstadd(uint32_t src_ino, uint32_t des_ino) {
     if (src_ino > temp->src_ino) {
       if (temp->left == NULL) {
         temp->left = newnode->node;
+        newnode->node->parent = temp;
         return;
       }
       temp = temp->left;
@@ -121,9 +123,53 @@ void bstadd(uint32_t src_ino, uint32_t des_ino) {
     if (src_ino < temp->src_ino) {
       if (temp->right == NULL) {
         temp->right = newnode->node;
+        newnode->node->parent = temp;
         return;
       }
       temp = temp->right;
     }
   }
+}
+
+void bstremove(bst_node *node) {
+  if (node == NULL)
+    return;
+
+  bst_node *remaining = node->left;
+  bst_node *next = node->right;
+  bst_node *temp = NULL;
+
+  if (node->src_ino > node->parent->src_ino) {
+    node->parent->right = node->right;
+  } else {
+    node->parent->left = node->right;
+  }
+
+  while (remaining != NULL) {
+
+    if (remaining < next) {
+      if (next->left == NULL) {
+        next->left = remaining;
+        break;
+      }
+
+      temp = next->left;
+      next->left = remaining;
+      remaining = temp;
+      continue;
+    }
+
+    if (next->right == NULL) {
+      next->right = remaining;
+      break;
+    }
+
+    temp = next->right;
+    next->right = remaining;
+    remaining = temp;
+  }
+
+  node->src_ino = 0;
+  node->des_ino = 0;
+  pushstack(node->stackitem);
 }
