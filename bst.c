@@ -11,6 +11,7 @@ struct bstack {
 
 static struct bstack *stack;
 static uint32_t tnodes;
+bst_node *troot;
 
 static void fail_clean(struct bstack *s) {
   struct bstack *temp;
@@ -26,22 +27,23 @@ static void fail_clean(struct bstack *s) {
 
 static struct bstack *popstack() {
   struct bstack *sitem = stack;
-  stack = stack->next;
-  stack->previous = NULL;
+  stack = stack->previous;
+  stack->next = NULL;
   sitem->next = NULL;
+  sitem->previous = NULL;
   tnodes--;
   return sitem;
 }
 
 static void pushstack(struct bstack *item) {
-  stack->previous = item;
-  item->next = stack;
+  stack->next = item;
+  item->previous = stack;
   stack = item;
   tnodes++;
 }
 
 void setup_bst() {
-  bst_node *troot = NULL;
+  troot = NULL;
   stack = NULL;
 
   struct bstack *temp_stack;
@@ -111,7 +113,7 @@ void bstadd(uint64_t src_ino, uint64_t des_ino) {
   bst_node *temp = troot;
 
   while (1) {
-    if (src_ino > temp->src_ino) {
+    if (src_ino < temp->src_ino) {
       if (temp->left == NULL) {
         temp->left = newnode->node;
         newnode->node->parent = temp;
@@ -120,14 +122,12 @@ void bstadd(uint64_t src_ino, uint64_t des_ino) {
       temp = temp->left;
       continue;
     }
-    if (src_ino < temp->src_ino) {
-      if (temp->right == NULL) {
-        temp->right = newnode->node;
-        newnode->node->parent = temp;
-        return;
-      }
-      temp = temp->right;
+    if (temp->right == NULL) {
+      temp->right = newnode->node;
+      newnode->node->parent = temp;
+      return;
     }
+    temp = temp->right;
   }
 }
 
@@ -147,7 +147,7 @@ void bstremove(bst_node *node) {
 
   while (remaining != NULL) {
 
-    if (remaining < next) {
+    if (remaining > next) {
       if (next->left == NULL) {
         next->left = remaining;
         break;
