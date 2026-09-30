@@ -25,7 +25,7 @@ extern bst_node *troot;
 
 void setup_bst();
 bst_node *bstfind(uint64_t src_ino);
-void bstadd(uint64_t src_ino, uint64_t des_ino);
+bst_node *bstadd(uint64_t src_ino, uint64_t des_ino);
 void bstremove(bst_node *node);
 
 #endif

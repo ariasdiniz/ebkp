@@ -97,7 +97,7 @@ bst_node *bstfind(uint64_t src_ino) {
   return node;
 }
 
-void bstadd(uint64_t src_ino, uint64_t des_ino) {
+bst_node *bstadd(uint64_t src_ino, uint64_t des_ino) {
   struct bstack *newnode = popstack();
   newnode->node->src_ino = src_ino;
   newnode->node->des_ino = des_ino;
@@ -107,7 +107,7 @@ void bstadd(uint64_t src_ino, uint64_t des_ino) {
 
   if (troot == NULL) {
     troot = newnode->node;
-    return;
+    return newnode->node;
   }
 
   bst_node *temp = troot;
@@ -117,7 +117,7 @@ void bstadd(uint64_t src_ino, uint64_t des_ino) {
       if (temp->left == NULL) {
         temp->left = newnode->node;
         newnode->node->parent = temp;
-        return;
+        return newnode->node;
       }
       temp = temp->left;
       continue;
@@ -125,10 +125,12 @@ void bstadd(uint64_t src_ino, uint64_t des_ino) {
     if (temp->right == NULL) {
       temp->right = newnode->node;
       newnode->node->parent = temp;
-      return;
+      return newnode->node;
     }
     temp = temp->right;
   }
+
+  return newnode->node;
 }
 
 void bstremove(bst_node *node) {
