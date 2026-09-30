@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 
-#define MAXITEMS 100000
+#define MAXITEMS 1000000
 
 struct bstack;
 
@@ -22,10 +22,12 @@ typedef struct bst_node {
 } bst_node;
 
 extern bst_node *troot;
+extern char debug_flag;
 
 void setup_bst();
 bst_node *bstfind(uint64_t src_ino);
 bst_node *bstadd(uint64_t src_ino, uint64_t des_ino);
 void bstremove(bst_node *node);
+void bstsave(char *target);
 
 #endif

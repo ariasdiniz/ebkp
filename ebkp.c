@@ -1,3 +1,4 @@
+#include "ebkp.h"
 #include <dirent.h>
 #include <errno.h>
 #include <stdbool.h>
@@ -7,7 +8,7 @@
 #include <sys/types.h>
 // #include "./ebkp.h"
 
-#define DEBUG 0
+char debug_flag;
 
 int main(int argc, char **argv) {
   if (argc < 3) {
@@ -41,10 +42,11 @@ int main(int argc, char **argv) {
     }
   }
 
+  setup_bst();
   struct dirent *item;
   while ((item = readdir(src)) != NULL) {
-    printf("%d\n", item->d_ino == DT_DIR);
+    bstadd(item->d_ino, item->d_ino);
   }
-
+  bstsave(target);
   return 0;
 }

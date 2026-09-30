@@ -1,7 +1,9 @@
 #include "./ebkp.h"
 #include <errno.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct bstack {
   bst_node *node;
@@ -9,8 +11,16 @@ struct bstack {
   struct bstack *previous;
 };
 
+struct dfsstack {
+  struct dfsstack *next;
+  bst_node *curr;
+  char processed_right;
+  char processed_left;
+};
+
 static struct bstack *stack;
-static uint32_t tnodes;
+static uint64_t tnodes;
+static struct dfsstack *tempstack;
 bst_node *troot;
 
 static void fail_clean(struct bstack *s) {
@@ -76,6 +86,7 @@ void setup_bst() {
     stack = temp_stack;
   }
   tnodes = MAXITEMS;
+  tempstack = malloc(sizeof(struct dfsstack) * MAXITEMS);
 }
 
 bst_node *bstfind(uint64_t src_ino) {
@@ -174,4 +185,56 @@ void bstremove(bst_node *node) {
   node->src_ino = 0;
   node->des_ino = 0;
   pushstack(node->stackitem);
+}
+
+void bstsave(char *target) {
+  char fname[MAXNAMLEN];
+  strcpy(fname, target);
+  strcat(fname, "/.ebkp");
+  FILE *meta = fopen(fname, "w");
+
+  fprintf(meta, "%lld", (MAXITEMS - tnodes));
+
+  struct dfsstack *stacktop = &tempstack[0];
+  struct dfsstack *new = stacktop;
+
+  stacktop->next = NULL;
+  stacktop->curr = troot;
+  stacktop->processed_left = 0;
+  stacktop->processed_right = 0;
+
+  uint64_t n = 1;
+
+  while (stacktop != NULL) {
+    if (stacktop->curr->left != NULL && stacktop->processed_left == 0) {
+      stacktop->processed_left = 1;
+      new = &tempstack[n];
+      new->processed_right = 0;
+      new->processed_left = 0;
+      new->curr = stacktop->curr->left;
+      new->next = stacktop;
+      stacktop = new;
+      n++;
+      continue;
+    }
+
+    if (stacktop->curr->right != NULL && stacktop->processed_right == 0) {
+      stacktop->processed_right = 1;
+      new = &tempstack[n];
+      new->processed_left = 0;
+      new->processed_right = 0;
+      new->curr = stacktop->curr->right;
+      new->next = stacktop;
+      stacktop = new;
+      n++;
+      continue;
+    }
+
+    printf("Writing node of value src_ino %lld\n", stacktop->curr->src_ino);
+    fprintf(meta, "%lld%lld", stacktop->curr->src_ino, stacktop->curr->des_ino);
+    stacktop = stacktop->next;
+    n--;
+  }
+
+  fclose(meta);
 }
