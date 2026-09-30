@@ -89,6 +89,22 @@ void setup_bst() {
   tempstack = malloc(sizeof(struct dfsstack) * MAXITEMS);
 }
 
+void destroy_bst() {
+  free(tempstack);
+  while (troot != NULL) {
+    bstremove(troot);
+  }
+  struct bstack *temp;
+  while (stack != NULL) {
+    temp = stack->next;
+    if (stack->node != NULL)
+      free(stack->node);
+    if (stack != NULL)
+      free(stack);
+    stack = temp;
+  }
+}
+
 bst_node *bstfind(uint64_t src_ino) {
   if (troot == NULL)
     return NULL;
@@ -152,15 +168,19 @@ void bstremove(bst_node *node) {
   bst_node *next = node->right;
   bst_node *temp = NULL;
 
-  if (node->src_ino > node->parent->src_ino) {
-    node->parent->right = node->right;
+  if (node->parent != NULL) {
+    if (node->src_ino > node->parent->src_ino) {
+      node->parent->right = node->right;
+    } else {
+      node->parent->left = node->right;
+    }
   } else {
-    node->parent->left = node->right;
+    troot = next;
   }
 
   while (remaining != NULL) {
 
-    if (remaining > next) {
+    if (remaining->src_ino < next->src_ino) {
       if (next->left == NULL) {
         next->left = remaining;
         break;
@@ -230,7 +250,9 @@ void bstsave(char *target) {
       continue;
     }
 
-    printf("Writing node of value src_ino %lld\n", stacktop->curr->src_ino);
+    if (debug_flag)
+      printf("Writing node of value src_ino %lld\n", stacktop->curr->src_ino);
+
     fprintf(meta, "%lld%lld", stacktop->curr->src_ino, stacktop->curr->des_ino);
     stacktop = stacktop->next;
     n--;

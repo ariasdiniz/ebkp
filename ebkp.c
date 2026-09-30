@@ -10,10 +10,38 @@
 
 char debug_flag;
 
+typedef void (*flag_function)();
+
+struct flag_action {
+  char *flag;
+  flag_function fn;
+};
+
+void debug() {
+  debug_flag = 1;
+}
+
+struct flag_action flag_strategy[] = {
+  {"--debug", debug},
+  {"-debug", debug}
+};
+
 int main(int argc, char **argv) {
   if (argc < 3) {
     fprintf(stderr, "This program needs at least 2 arguments to run.\n");
     return 1;
+  }
+
+  debug_flag = 0;
+  size_t strategy_size = sizeof(flag_strategy) / sizeof(flag_strategy[0]);
+
+  for (int i = 3; i < argc; i++) {
+    for (int j = 0; j < strategy_size; j++) {
+      if (strcmp(argv[i], flag_strategy[j].flag) == 0) {
+        flag_strategy[j].fn();
+        break;
+      }
+    }
   }
 
   char source[MAXNAMLEN], target[MAXNAMLEN];
@@ -48,5 +76,6 @@ int main(int argc, char **argv) {
     bstadd(item->d_ino, item->d_ino);
   }
   bstsave(target);
+  destroy_bst();
   return 0;
 }
