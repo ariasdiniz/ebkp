@@ -6,7 +6,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-// #include "./ebkp.h"
 
 char debug_flag;
 

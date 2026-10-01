@@ -92,6 +92,8 @@ void setup_bst() {
 void destroy_bst() {
   free(tempstack);
   while (troot != NULL) {
+    if (debug_flag)
+      printf("Removing node of value src_ino %lld\n", troot->src_ino);
     bstremove(troot);
   }
   struct bstack *temp;
@@ -169,17 +171,28 @@ void bstremove(bst_node *node) {
   bst_node *temp = NULL;
 
   if (node->parent != NULL) {
+    node->right->parent = node->parent;
     if (node->src_ino > node->parent->src_ino) {
       node->parent->right = node->right;
     } else {
       node->parent->left = node->right;
     }
   } else {
-    troot = next;
+    if (troot->right != NULL) {
+      troot = troot->right;
+      troot->parent = NULL;
+    } else if (troot->left != NULL && troot->right == NULL) {
+      troot = troot->left;
+      troot->parent = NULL;
+      remaining = NULL;
+    } else {
+      troot = NULL;
+    }
   }
 
   while (remaining != NULL) {
 
+    remaining->parent = next;
     if (remaining->src_ino < next->src_ino) {
       if (next->left == NULL) {
         next->left = remaining;
@@ -188,6 +201,7 @@ void bstremove(bst_node *node) {
 
       temp = next->left;
       next->left = remaining;
+      next = remaining;
       remaining = temp;
       continue;
     }
@@ -199,6 +213,7 @@ void bstremove(bst_node *node) {
 
     temp = next->right;
     next->right = remaining;
+    next = remaining;
     remaining = temp;
   }
 
