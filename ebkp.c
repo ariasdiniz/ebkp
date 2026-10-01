@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -16,14 +17,9 @@ struct flag_action {
   flag_function fn;
 };
 
-void debug() {
-  debug_flag = 1;
-}
+void debug() { debug_flag = 1; }
 
-struct flag_action flag_strategy[] = {
-  {"--debug", debug},
-  {"-debug", debug}
-};
+struct flag_action flag_strategy[] = {{"--debug", debug}, {"-debug", debug}};
 
 int main(int argc, char **argv) {
   if (argc < 3) {
@@ -34,6 +30,11 @@ int main(int argc, char **argv) {
   debug_flag = 0;
   size_t strategy_size = sizeof(flag_strategy) / sizeof(flag_strategy[0]);
 
+  /* Since I will make this code public eventually, I will leave this comment
+   * here: Yes, the snippet below is O(n * m). Yes, this is intentional. Since
+   * it is just a parser for arguments, and this program will have only a
+   * handful of them, the impact on performance should be negligible.
+   */
   for (int i = 3; i < argc; i++) {
     for (int j = 0; j < strategy_size; j++) {
       if (strcmp(argv[i], flag_strategy[j].flag) == 0) {
@@ -72,11 +73,16 @@ int main(int argc, char **argv) {
   setup_bst();
   bstload(target);
   struct dirent *item;
+  struct stat fileinfo;
+  uint64_t tstamp;
   if (troot == NULL) {
     while ((item = readdir(src)) != NULL) {
       if (strcmp(item->d_name, ".") == 0 || strcmp(item->d_name, "..") == 0)
         continue;
-      bstadd(item->d_ino, item->d_ino);
+      stat(item->d_name, &fileinfo);
+      tstamp = (fileinfo.st_mtimespec.tv_sec << 32) +
+               fileinfo.st_mtimespec.tv_nsec;
+      bstadd(item->d_ino, item->d_ino, tstamp, tstamp);
     }
   }
   bstsave(target);

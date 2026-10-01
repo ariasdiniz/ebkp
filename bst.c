@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <time.h>
 
 struct bstack {
   bst_node *node;
@@ -127,10 +128,13 @@ bst_node *bstfind(uint64_t src_ino) {
   return node;
 }
 
-bst_node *bstadd(uint64_t src_ino, uint64_t des_ino) {
+bst_node *bstadd(uint64_t src_ino, uint64_t des_ino, uint64_t src_mtstamp,
+                 uint64_t des_mtstamp) {
   struct bstack *newnode = popstack();
   newnode->node->src_ino = src_ino;
   newnode->node->des_ino = des_ino;
+  newnode->node->src_mtstamp = src_mtstamp;
+  newnode->node->des_mtstamp = des_mtstamp;
   newnode->node->parent = NULL;
   newnode->node->left = NULL;
   newnode->node->right = NULL;
@@ -241,17 +245,19 @@ void bstload(char *target) {
 
   FILE *meta = fopen(fname, "rb");
 
-  uint64_t nnodes, ino[2];
+  uint64_t nnodes, ino[4];
   fread(&nnodes, sizeof(uint64_t), 1, meta);
 
   if (debug_flag)
     printf("Loading %lld nodes on file\n", nnodes);
 
   for (uint64_t i = 0; i < nnodes; i++) {
-    fread(ino, sizeof(uint64_t), 2, meta);
-    if (debug_flag)
-      printf("Reading node of src_ino %lld and des_ino %lld\n", ino[0], ino[1]);
-    bstadd(ino[0], ino[1]);
+    fread(ino, sizeof(uint64_t), 4, meta);
+    if (debug_flag) {
+      long t = ino[2] >> 32;
+      printf("Reading node of src_ino %lld and des_ino %lld with last mod %s\n", ino[0], ino[1], ctime(&t));
+    }
+    bstadd(ino[0], ino[1], ino[2], ino[3]);
   }
 
   fclose(meta);
@@ -311,6 +317,8 @@ void bstsave(char *target) {
 
     fwrite(&stacktop->curr->src_ino, sizeof(uint64_t), 1, meta);
     fwrite(&stacktop->curr->des_ino, sizeof(uint64_t), 1, meta);
+    fwrite(&stacktop->curr->src_mtstamp, sizeof(uint64_t), 1, meta);
+    fwrite(&stacktop->curr->des_mtstamp, sizeof(uint64_t), 1, meta);
     stacktop = stacktop->next;
     n--;
   }
