@@ -70,9 +70,14 @@ int main(int argc, char **argv) {
   }
 
   setup_bst();
+  bstload(target);
   struct dirent *item;
-  while ((item = readdir(src)) != NULL) {
-    bstadd(item->d_ino, item->d_ino);
+  if (troot == NULL) {
+    while ((item = readdir(src)) != NULL) {
+      if (strcmp(item->d_name, ".") == 0 || strcmp(item->d_name, "..") == 0)
+        continue;
+      bstadd(item->d_ino, item->d_ino);
+    }
   }
   bstsave(target);
   destroy_bst();

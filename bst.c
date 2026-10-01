@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 struct bstack {
   bst_node *node;
@@ -222,16 +223,56 @@ void bstremove(bst_node *node) {
   pushstack(node->stackitem);
 }
 
+void bstload(char *target) {
+  char fname[MAXNAMLEN];
+  strcpy(fname, target);
+  strcat(fname, "/.ebkp");
+  struct stat st;
+
+  if (stat(fname, &st) != 0) {
+    if (debug_flag)
+      printf("No .ebkp file on target. Skipping bst load\n");
+    errno = 0;
+    return;
+  }
+
+  if (debug_flag)
+    printf(".ebkp file found.\n");
+
+  FILE *meta = fopen(fname, "rb");
+
+  uint64_t nnodes, ino[2];
+  fread(&nnodes, sizeof(uint64_t), 1, meta);
+
+  if (debug_flag)
+    printf("Loading %lld nodes on file\n", nnodes);
+
+  for (uint64_t i = 0; i < nnodes; i++) {
+    fread(ino, sizeof(uint64_t), 2, meta);
+    if (debug_flag)
+      printf("Reading node of src_ino %lld and des_ino %lld\n", ino[0], ino[1]);
+    bstadd(ino[0], ino[1]);
+  }
+
+  fclose(meta);
+}
+
 void bstsave(char *target) {
   char fname[MAXNAMLEN];
   strcpy(fname, target);
   strcat(fname, "/.ebkp");
-  FILE *meta = fopen(fname, "w");
+  FILE *meta = fopen(fname, "wb");
 
-  fprintf(meta, "%lld", (MAXITEMS - tnodes));
+  uint64_t nnodes = MAXITEMS - tnodes;
+  fwrite(&nnodes, sizeof(uint64_t), 1, meta);
 
   struct dfsstack *stacktop = &tempstack[0];
   struct dfsstack *new = stacktop;
+
+  if (stacktop == NULL) {
+    fclose(meta);
+    return;
+  }
 
   stacktop->next = NULL;
   stacktop->curr = troot;
@@ -240,7 +281,7 @@ void bstsave(char *target) {
 
   uint64_t n = 1;
 
-  while (stacktop != NULL) {
+  while (stacktop != NULL && stacktop->curr != NULL) {
     if (stacktop->curr->left != NULL && stacktop->processed_left == 0) {
       stacktop->processed_left = 1;
       new = &tempstack[n];
@@ -268,7 +309,8 @@ void bstsave(char *target) {
     if (debug_flag)
       printf("Writing node of value src_ino %lld\n", stacktop->curr->src_ino);
 
-    fprintf(meta, "%lld%lld", stacktop->curr->src_ino, stacktop->curr->des_ino);
+    fwrite(&stacktop->curr->src_ino, sizeof(uint64_t), 1, meta);
+    fwrite(&stacktop->curr->des_ino, sizeof(uint64_t), 1, meta);
     stacktop = stacktop->next;
     n--;
   }
