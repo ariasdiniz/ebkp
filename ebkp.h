@@ -1,25 +1,25 @@
 #ifndef EBKP_
+#define EBKP_
 
 #ifndef MAXNAMLEN
-#define MAXNAMLEN 1024
+#define MAXNAMLEN 255
 #endif
 
 #include <stdint.h>
 
-#define MAXITEMS 1000000
+#define MAXITEMS 1000
 
 struct bstack;
 
 #pragma pack(push, 1)
 typedef struct bst_node {
   uint64_t src_ino;
-  uint64_t des_ino;
   uint64_t src_mtstamp;
-  uint64_t des_mtstamp;
   struct bst_node *parent;
   struct bst_node *left;
   struct bst_node *right;
   struct bstack *stackitem;
+  char is_updated;
 } bst_node;
 #pragma pack(pop)
 
@@ -28,7 +28,7 @@ extern char debug_flag;
 
 void setup_bst();
 bst_node *bstfind(uint64_t src_ino);
-bst_node *bstadd(uint64_t src_ino, uint64_t des_ino, uint64_t src_mtstamp, uint64_t des_mtstamp);
+bst_node *bstadd(uint64_t src_ino, uint64_t src_mtstamp);
 void bstremove(bst_node *node);
 void bstload(char *target);
 void bstsave(char *target);

@@ -100,7 +100,7 @@ void destroy_bst() {
   }
   struct bstack *temp;
   while (stack != NULL) {
-    temp = stack->next;
+    temp = stack->previous;
     if (stack->node != NULL)
       free(stack->node);
     if (stack != NULL)
@@ -116,11 +116,15 @@ bst_node *bstfind(uint64_t src_ino) {
   bst_node *node = troot;
   while (node != NULL) {
 
-    if (src_ino > node->src_ino)
+    if (src_ino > node->src_ino) {
       node = node->right;
+      continue;
+    }
 
-    if (src_ino < node->src_ino)
+    if (src_ino < node->src_ino) {
       node = node->left;
+      continue;
+    }
 
     if (src_ino == node->src_ino)
       return node;
@@ -128,16 +132,14 @@ bst_node *bstfind(uint64_t src_ino) {
   return node;
 }
 
-bst_node *bstadd(uint64_t src_ino, uint64_t des_ino, uint64_t src_mtstamp,
-                 uint64_t des_mtstamp) {
+bst_node *bstadd(uint64_t src_ino, uint64_t src_mtstamp) {
   struct bstack *newnode = popstack();
   newnode->node->src_ino = src_ino;
-  newnode->node->des_ino = des_ino;
   newnode->node->src_mtstamp = src_mtstamp;
-  newnode->node->des_mtstamp = des_mtstamp;
   newnode->node->parent = NULL;
   newnode->node->left = NULL;
   newnode->node->right = NULL;
+  newnode->node->is_updated = 0;
 
   if (troot == NULL) {
     troot = newnode->node;
@@ -223,7 +225,6 @@ void bstremove(bst_node *node) {
   }
 
   node->src_ino = 0;
-  node->des_ino = 0;
   pushstack(node->stackitem);
 }
 
@@ -252,12 +253,13 @@ void bstload(char *target) {
     printf("Loading %lld nodes on file\n", nnodes);
 
   for (uint64_t i = 0; i < nnodes; i++) {
-    fread(ino, sizeof(uint64_t), 4, meta);
+    fread(ino, sizeof(uint64_t), 2, meta);
     if (debug_flag) {
-      long t = ino[2] >> 32;
-      printf("Reading node of src_ino %lld and des_ino %lld with last mod %s\n", ino[0], ino[1], ctime(&t));
+      long t = ino[1] >> 32;
+      printf("Reading node of src_ino %lld with last mod %s\n", ino[0],
+             ctime(&t));
     }
-    bstadd(ino[0], ino[1], ino[2], ino[3]);
+    bstadd(ino[0], ino[1]);
   }
 
   fclose(meta);
@@ -316,9 +318,7 @@ void bstsave(char *target) {
       printf("Writing node of value src_ino %lld\n", stacktop->curr->src_ino);
 
     fwrite(&stacktop->curr->src_ino, sizeof(uint64_t), 1, meta);
-    fwrite(&stacktop->curr->des_ino, sizeof(uint64_t), 1, meta);
     fwrite(&stacktop->curr->src_mtstamp, sizeof(uint64_t), 1, meta);
-    fwrite(&stacktop->curr->des_mtstamp, sizeof(uint64_t), 1, meta);
     stacktop = stacktop->next;
     n--;
   }
