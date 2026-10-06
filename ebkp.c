@@ -158,6 +158,12 @@ int main(int argc, char **argv) {
   struct nstack *ntemp;
 
   setup_bst();
+
+  if (errno != 0) {
+    fprintf(stderr, "Error allocating memory. Aborting\n");
+    return 1;
+  }
+
   bstload(target);
   struct dirent *item;
   struct stat fileinfo;
@@ -261,5 +267,6 @@ int main(int argc, char **argv) {
   closedir(tgt);
   bstsave(target);
   destroy_bst();
+  printf("Backup finished successfully.\n");
   return 0;
 }
