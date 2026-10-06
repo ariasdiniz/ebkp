@@ -73,7 +73,7 @@ void help() {
   printf("src_dir is the directory that will be copied (all children dirs will also be copied)\n");
   printf("tgt_dir is the directory where src_dir will be copied to. It don't need to be created previously\n");
   printf("--debug OR -debug will print debug info during execution. Do not use if want to avoid verbose.\n");
-  printf("--git OR -git will also copy .git folders and it`s contents. Disabled by default.\n`");
+  printf("--git OR -git will also copy .git folders and it's contents. Disabled by default.\n");
   printf("--help OR -help display this message and finishes program execution.\n");
   exit(0);
 }
@@ -167,7 +167,8 @@ int main(int argc, char **argv) {
 
     if (tgt == NULL || errno != 0) {
       errno = 0;
-      mkdir(nstack_top->des_name, S_IRWXU | S_IRGRP | S_IROTH);
+      stat(nstack_top->src_name, &fileinfo);
+      mkdir(nstack_top->des_name, fileinfo.st_mode);
       tgt = opendir(nstack_top->des_name);
     }
 
@@ -182,6 +183,12 @@ int main(int argc, char **argv) {
       char filename[MAXNAMLEN], tfilename[MAXNAMLEN];
       memcpy(filename, nstack_top->src_name, MAXNAMLEN);
       memcpy(tfilename, nstack_top->des_name, MAXNAMLEN);
+
+      if (strlen(tfilename) + strlen(item->d_name) + 1 >= MAXNAMLEN) {
+        fprintf(stderr, "File name length exceeds maximum name length. Aborting execution\n");
+        return 1;
+      }
+
       strcat(filename, "/");
       strcat(filename, item->d_name);
       strcat(tfilename, "/");
@@ -225,12 +232,13 @@ int main(int argc, char **argv) {
         while (fread(buffer, sizeof(char), BUFFER_SIZE, fsrc)) {
           fwrite(buffer, sizeof(char), BUFFER_SIZE, ftgt);
         }
+        chmod(tfilename, fileinfo.st_mode);
         fclose(fsrc);
         fclose(ftgt);
         continue;
       }
 
-      if (nstack_level == MAXFOLDERDEPTH) {
+      if (nstack_level >= MAXFOLDERDEPTH) {
         fprintf(stderr, "Maximum folder depth reached. Aborting backup.\n");
       }
 
