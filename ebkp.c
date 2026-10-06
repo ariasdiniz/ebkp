@@ -94,6 +94,12 @@ int main(int argc, char **argv) {
   debug_flag = 0;
   git_allow = 0;
 
+  char *buffer = malloc(sizeof(char) * BUFFER_SIZE);
+  if (buffer == NULL) {
+    fprintf(stderr, "Out of memory. Aborting\n");
+    return 1;
+  }
+
   size_t strategy_size = sizeof(flag_strategy) / sizeof(flag_strategy[0]);
 
   /* Since I will make this code public eventually, I will leave this comment
@@ -227,10 +233,11 @@ int main(int argc, char **argv) {
         FILE *fsrc = fopen(filename, "rb");
         FILE *ftgt = fopen(tfilename, "wb");
 
-        char buffer[BUFFER_SIZE] = {'\0'};
+        uint32_t bytes_read = 1;
 
-        while (fread(buffer, sizeof(char), BUFFER_SIZE, fsrc)) {
-          fwrite(buffer, sizeof(char), BUFFER_SIZE, ftgt);
+        while (bytes_read != 0) {
+          bytes_read = fread(buffer, sizeof(char), BUFFER_SIZE, fsrc);
+          fwrite(buffer, sizeof(char), bytes_read, ftgt);
         }
         chmod(tfilename, fileinfo.st_mode);
         fclose(fsrc);
