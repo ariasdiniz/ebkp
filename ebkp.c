@@ -263,6 +263,7 @@ int main(int argc, char **argv) {
     }
     nstackpop();
   }
+  free(buffer);
   closedir(src);
   closedir(tgt);
   bstsave(target);
