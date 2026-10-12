@@ -70,26 +70,29 @@ void debug() { debug_flag = 1; }
 void gitallow() { git_allow = 1; }
 void help() {
   printf("Usage: ebkp src_dir tgt_dir [flags]\n");
-  printf("src_dir is the directory that will be copied (all children dirs will also be copied)\n");
-  printf("tgt_dir is the directory where src_dir will be copied to. It don't need to be created previously\n");
-  printf("--debug OR -debug will print debug info during execution. Do not use if want to avoid verbose.\n");
-  printf("--git OR -git will also copy .git folders and it's contents. Disabled by default.\n");
-  printf("--help OR -help display this message and finishes program execution.\n");
+  printf("src_dir is the directory that will be copied (all children dirs will "
+         "also be copied)\n");
+  printf("tgt_dir is the directory where src_dir will be copied to. It don't "
+         "need to be created previously\n");
+  printf("--debug OR -debug will print debug info during execution. Do not use "
+         "if want to avoid verbose.\n");
+  printf("--git OR -git will also copy .git folders and it's contents. "
+         "Disabled by default.\n");
+  printf(
+      "--help OR -help display this message and finishes program execution.\n");
   exit(0);
 }
 
-struct flag_action flag_strategy[] = {{"--debug", debug},
-                                      {"-debug", debug},
-                                      {"--git", gitallow},
-                                      {"-git", gitallow},
-                                      {"-help", help},
-                                      {"--help", help}};
+struct flag_action flag_strategy[] = {{"--debug", debug},  {"-debug", debug},
+                                      {"--git", gitallow}, {"-git", gitallow},
+                                      {"-help", help},     {"--help", help}};
 
 int main(int argc, char **argv) {
   printf("ebkp - Simple C program for efficient backup of files and folders\n");
   printf("Copyright (C) 2026 Aria Diniz\n");
   printf("This program comes with ABSOLUTELY NO WARRANTY\n");
-  printf("This is free software, and you are welcome to redistribute it under certain conditions\n\n");
+  printf("This is free software, and you are welcome to redistribute it under "
+         "certain conditions\n\n");
 
   debug_flag = 0;
   git_allow = 0;
@@ -120,7 +123,6 @@ int main(int argc, char **argv) {
     fprintf(stderr, "This program needs at least 2 arguments to run. --help\n");
     return 1;
   }
-
 
   char source[MAXNAMLEN], target[MAXNAMLEN];
   memcpy(&source, argv[1], MAXNAMLEN);
@@ -197,7 +199,8 @@ int main(int argc, char **argv) {
       memcpy(tfilename, nstack_top->des_name, MAXNAMLEN);
 
       if (strlen(tfilename) + strlen(item->d_name) + 1 >= MAXNAMLEN) {
-        fprintf(stderr, "File name length exceeds maximum name length. Aborting execution\n");
+        fprintf(stderr, "File name length exceeds maximum name length. "
+                        "Aborting execution\n");
         return 1;
       }
 
