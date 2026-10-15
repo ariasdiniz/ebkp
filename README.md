@@ -25,6 +25,8 @@ or if you have Make installed, simply
 make
 ```
 
+**Note: Currently the macro MAXITEMS is defined as 1000 to save up memory, since I have a small number of files that I need to backup. If you want to use this software to backup more items than this, adjust acordingly before compilation. Beware That increments of this number in powers of 10 will also increase memory usage in the same proportion.**
+
 ## Usage
 ```
 ebkp src_dir tgt_dir [flags]
