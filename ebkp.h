@@ -43,6 +43,7 @@ typedef struct bst_node {
 
 extern bst_node *troot;
 extern char debug_flag;
+extern uint64_t maxitem;
 
 void setup_bst();
 bst_node *bstfind(uint64_t src_ino);

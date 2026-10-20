@@ -42,6 +42,7 @@ static struct bstack *stack;
 static uint64_t tnodes;
 static struct dfsstack *tempstack;
 bst_node *troot;
+uint64_t maxitem;
 
 static void fail_clean(struct bstack *s) {
   struct bstack *temp;
@@ -75,11 +76,17 @@ static void pushstack(struct bstack *item) {
 void setup_bst() {
   troot = NULL;
   stack = NULL;
+  if (maxitem == 0) {
+    maxitem = MAXITEMS;
+  }
+
+  if (debug_flag)
+    printf("maxitem size: %lld\n", maxitem);
 
   struct bstack *temp_stack;
   bst_node *temp_node;
 
-  for (int i = 0; i < MAXITEMS; i++) {
+  for (int i = 0; i < maxitem; i++) {
     temp_stack = malloc(sizeof(struct bstack));
 
     if (temp_stack == NULL) {
@@ -105,8 +112,8 @@ void setup_bst() {
 
     stack = temp_stack;
   }
-  tnodes = MAXITEMS;
-  tempstack = malloc(sizeof(struct dfsstack) * MAXITEMS);
+  tnodes = maxitem;
+  tempstack = malloc(sizeof(struct dfsstack) * maxitem);
 }
 
 void destroy_bst() {
@@ -274,7 +281,7 @@ void bstload(char *target) {
     fread(ino, sizeof(uint64_t), 2, meta);
     if (debug_flag) {
       long t = ino[1] >> 32;
-      printf("Reading node of src_ino %lld with last mod %s\n", ino[0],
+      printf("Reading node of src_ino %lld with last mod %s", ino[0],
              ctime(&t));
     }
     bstadd(ino[0], ino[1]);
@@ -289,7 +296,7 @@ void bstsave(char *target) {
   strcat(fname, "/.ebkp");
   FILE *meta = fopen(fname, "wb");
 
-  uint64_t nnodes = MAXITEMS - tnodes;
+  uint64_t nnodes = maxitem - tnodes;
   fwrite(&nnodes, sizeof(uint64_t), 1, meta);
 
   struct dfsstack *stacktop = &tempstack[0];

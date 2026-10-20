@@ -25,7 +25,7 @@ or if you have Make installed, simply
 make
 ```
 
-**Note: Currently the macro MAXITEMS is defined as 1000 to save up memory, since I have a small number of files that I need to backup. If you want to use this software to backup more items than this, adjust acordingly before compilation. Beware That increments of this number in powers of 10 will also increase memory usage in the same proportion.**
+**Note: Currently the macro MAXITEMS is defined as 1000 to save up memory, since I have a small number of files that I need to backup. If you want to use this software to backup more items than this, adjust acordingly before compilation or use the --max flag. Beware That increments of this number in powers of 10 will also increase memory usage in the same proportion.**
 
 ## Usage
 ```
@@ -36,4 +36,6 @@ src_dir is the directory that will be copied (all children dirs will also be cop
 tgt_dir is the directory where src_dir will be copied to. It don't need to be created previously
 --debug OR -debug will print debug info during execution. Do not use if want to avoid verbose.
 --git OR -git will also copy .git folders and it`s contents. Disabled by default.
-`--help OR -help display this message and finishes program execution.
+--help OR -help display this message and finishes program execution.
+--max OR -max to increase max number of files from 1,000 to 100,000.
+

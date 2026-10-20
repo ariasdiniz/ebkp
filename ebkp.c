@@ -38,6 +38,7 @@ struct nstack {
 
 static int nstack_level;
 static struct nstack *nstack_top;
+uint64_t maxitem;
 char debug_flag;
 char git_allow;
 
@@ -69,23 +70,28 @@ struct flag_action {
 void debug() { debug_flag = 1; }
 void gitallow() { git_allow = 1; }
 void help() {
-  printf("Usage: ebkp src_dir tgt_dir [flags]\n");
+  printf("Usage: ebkp src_dir tgt_dir [flags]\n\n");
   printf("src_dir is the directory that will be copied (all children dirs will "
-         "also be copied)\n");
+         "also be copied)\n\n");
   printf("tgt_dir is the directory where src_dir will be copied to. It don't "
-         "need to be created previously\n");
+         "need to be created previously\n\n");
   printf("--debug OR -debug will print debug info during execution. Do not use "
-         "if want to avoid verbose.\n");
+         "if want to avoid verbose.\n\n");
   printf("--git OR -git will also copy .git folders and it's contents. "
-         "Disabled by default.\n");
-  printf(
-      "--help OR -help display this message and finishes program execution.\n");
+         "Disabled by default.\n\n");
+  printf("--help OR -help display this message and finishes program "
+         "execution.\n\n");
+  printf("--max OR -max to increase the maximum number of files from 1,000 to "
+         "100,000.\nThis will increase the average memory footprint from 1MB "
+         "to 11MB on peak usage.\n\n");
   exit(0);
 }
+void maxitems() { maxitem = 100000; }
 
 struct flag_action flag_strategy[] = {{"--debug", debug},  {"-debug", debug},
                                       {"--git", gitallow}, {"-git", gitallow},
-                                      {"-help", help},     {"--help", help}};
+                                      {"--help", help},    {"-help", help},
+                                      {"--max", maxitems}, {"-max", maxitems}};
 
 int main(int argc, char **argv) {
   printf("ebkp - Simple C program for efficient backup of files and folders\n");
